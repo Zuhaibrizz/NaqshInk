@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables: Dark (default) ── */
+:root {
+  --bg:        #0a0a0a;
+  --bg-card:   #1a1a1a;
+  --bg-input:  #2d2d2d;
+  --border:    #2d2d2d;
+  --text:      #ffffff;
+  --text-muted:#9ca3af;
+  --text-faint:#4b5563;
+  --accent:    #c8a96e;
+  --accent-hover:#eab308;
+  --nav-bg:    rgba(10,10,10,0.95);
+  --shadow:    0 4px 32px rgba(0,0,0,0.5);
+}
+
+/* ── CSS Variables: Light ── */
+html.light {
+  --bg:        #faf8f5;
+  --bg-card:   #ffffff;
+  --bg-input:  #f3ede6;
+  --border:    #e5ddd3;
+  --text:      #1a1208;
+  --text-muted:#6b5e4e;
+  --text-faint:#a89880;
+  --accent:    #b8924a;
+  --accent-hover:#c8a96e;
+  --nav-bg:    rgba(250,248,245,0.95);
+  --shadow:    0 4px 32px rgba(0,0,0,0.08);
+}
+
+@layer base {
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    @apply font-sans transition-colors duration-300;
+  }
+  * { scroll-behavior: smooth; }
+  .page-top { padding-top: 7rem; }
+  @media (min-width: 768px) { .page-top { padding-top: 8rem; } }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    background-color: var(--accent);
+    color: #0a0a0a;
+    @apply font-semibold px-6 py-3 rounded-full transition-all duration-200 inline-block;
+  }
+  .btn-primary:hover { background-color: var(--accent-hover); }
+
+  .btn-outline {
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    @apply font-semibold px-6 py-3 rounded-full transition-all duration-200 inline-block;
+  }
+  .btn-outline:hover {
+    background-color: var(--accent);
+    color: #0a0a0a;
+  }
+
+  /* ── Card ── */
+  .card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    @apply rounded-2xl overflow-hidden transition-all duration-300;
+  }
+  .card:hover { border-color: var(--accent); }
+
+  /* ── Input ── */
+  .input {
+    width: 100%;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    @apply rounded-lg px-4 py-3 focus:outline-none transition;
+  }
+  .input::placeholder { color: var(--text-faint); }
+  .input:focus { border-color: var(--accent); }
+
+  /* ── Badge ── */
+  .badge {
+    background-color: var(--accent);
+    color: #0a0a0a;
+    @apply text-xs font-bold px-2 py-0.5 rounded-full;
+  }
+
+  /* ── Navbar ── */
+  .nav-bg { background-color: var(--nav-bg); }
+  .nav-border { border-color: var(--border); }
+  .nav-text { color: var(--text-muted); }
+  .nav-text:hover { color: var(--text); }
+}
+
+/* ── Scroll Reveal ── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.7s cubic-bezier(.22,1,.36,1), transform 0.7s cubic-bezier(.22,1,.36,1);
+}
+[data-reveal="left"]  { transform: translateX(-50px); opacity: 0; }
+[data-reveal="right"] { transform: translateX(50px);  opacity: 0; }
+[data-reveal="scale"] { transform: scale(0.88);        opacity: 0; }
+[data-reveal="fade"]  { transform: none;               opacity: 0; }
+[data-reveal].revealed { opacity: 1 !important; transform: none !important; }
+
+/* ── Marquee ── */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 22s linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+/* ── Video glow ── */
+.video-glow { box-shadow: 0 0 60px rgba(200,169,110,0.15), 0 0 120px rgba(200,169,110,0.07); }
+
+/* ── Particle ── */
+.hero-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ── Theme-aware text helpers ── */
+.t-muted  { color: var(--text-muted); }
+.t-faint  { color: var(--text-faint); }
+.t-accent { color: var(--accent); }
+.bg-surface { background-color: var(--bg-card); }
+.bg-input   { background-color: var(--bg-input); }
+.border-theme { border-color: var(--border); }
+
+/* ── Light mode overrides for hardcoded Tailwind dark classes ── */
+html.light .bg-ink-black  { background-color: var(--bg) !important; }
+html.light .bg-ink-dark   { background-color: var(--bg-card) !important; }
+html.light .bg-ink-gray   { background-color: var(--bg-input) !important; }
+html.light .bg-ink-gray\/80 { background-color: var(--bg-input) !important; }
+html.light .border-ink-gray { border-color: var(--border) !important; }
+html.light .border-ink-gray\/50 { border-color: var(--border) !important; }
+
+/* Text */
+html.light .text-white    { color: var(--text) !important; }
+html.light .text-gray-100 { color: var(--text) !important; }
+html.light .text-gray-200 { color: var(--text) !important; }
+html.light .text-gray-300 { color: var(--text-muted) !important; }
+html.light .text-gray-400 { color: var(--text-muted) !important; }
+html.light .text-gray-500 { color: var(--text-faint) !important; }
+html.light .text-gray-600 { color: var(--text-faint) !important; }
+
+/* Placeholders */
+html.light .placeholder-gray-400::placeholder { color: var(--text-faint); }
+
+/* ── Chips / pills / tags — the main culprits ── */
+/* Pattern: bg-ink-gray border-ink-gray text-gray-300 */
+html.light span.text-gray-300,
+html.light span.text-xs.text-gray-300 {
+  color: var(--text-muted) !important;
+}
+
+/* Feature pills in hero */
+html.light .bg-ink-gray\/80 {
+  background-color: rgba(180,160,130,0.12) !important;
+  border-color: rgba(180,160,130,0.3) !important;
+}
+
+/* Collab chips, studio type chips, any inline chip with bg-ink-gray */
+html.light [class*="bg-ink-gray"][class*="rounded-full"],
+html.light [class*="bg-ink-gray"][class*="rounded-xl"],
+html.light [class*="bg-ink-gray"][class*="rounded-lg"] {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border) !important;
+  color: var(--text-muted) !important;
+}
+
+/* bg-ink-black/60 chips in custom studio CTA */
+html.light [class*="bg-ink-black"] {
+  background-color: var(--bg-input) !important;
+  color: var(--text-muted) !important;
+}
+
+/* Section backgrounds */
+html.light section.bg-ink-dark,
+html.light div.bg-ink-dark,
+html.light .bg-ink-dark {
+  background-color: #f0ebe4 !important;
+}
+
+/* Hero section stays dark always */
+html.light section.bg-ink-black.min-h-screen {
+  background-color: #1a1208 !important;
+}
+html.light section.bg-ink-black.min-h-screen .text-gray-400,
+html.light section.bg-ink-black.min-h-screen .text-gray-500,
+html.light section.bg-ink-black.min-h-screen .text-gray-600 {
+  color: #d4c4a8 !important;
+}
+html.light section.bg-ink-black.min-h-screen .text-white {
+  color: #ffffff !important;
+}
+
+/* Page hero sections (about, contact, how-it-works) */
+html.light .bg-gradient-to-b.from-ink-dark {
+  background: linear-gradient(to bottom, #f0ebe4, var(--bg)) !important;
+}
+
+/* Cards in light mode */
+html.light .card {
+  background-color: #ffffff !important;
+  border-color: #e5ddd3 !important;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+html.light .card:hover {
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Input in light mode */
+html.light .input {
+  background-color: #f3ede6 !important;
+  border-color: #d4c4a8 !important;
+  color: #1a1208 !important;
+}
+
+/* Hover states on bg-ink-gray */
+html.light .hover\:bg-ink-gray:hover { background-color: var(--bg-input) !important; }
+html.light .hover\:bg-ink-gray\/30:hover { background-color: rgba(180,160,130,0.1) !important; }
+
+/* Borders */
+html.light .border-ink-accent\/30 { border-color: rgba(184,146,74,0.4) !important; }
+html.light .border-ink-accent\/20 { border-color: rgba(184,146,74,0.3) !important; }
+
+/* Custom studio CTA gradient box */
+html.light [style*="background: linear-gradient(135deg, #1a1a1a"] {
+  background: linear-gradient(135deg, #f0ebe4 0%, #e8ddd0 100%) !important;
+}
+html.light [style*="background: linear-gradient(135deg, #1a1a1a"] .text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+/* Testimonial quote text */
+html.light .text-gray-300 { color: var(--text-muted) !important; }
+
+/* FAQ border */
+html.light .border-t.border-ink-gray { border-color: var(--border) !important; }
+
+/* Video section bg */
+html.light .bg-ink-dark.py-20,
+html.light section.py-20.bg-ink-dark,
+html.light section.py-16.bg-ink-dark {
+  background-color: #f0ebe4 !important;
+}
+
+/* Marquee strip stays gold */
+html.light .bg-ink-accent { background-color: var(--accent) !important; }
+
+/* Scroll indicator */
+html.light .text-gray-600.tracking-widest { color: var(--text-faint) !important; }
