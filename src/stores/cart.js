@@ -23,8 +23,9 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function updateQty(id, qty) {
+    if (qty <= 0) { removeItem(id); return }
     const item = items.value.find(i => i.id === id)
-    if (item) { item.qty = Math.max(1, qty); save() }
+    if (item) { item.qty = qty; save() }
   }
 
   function clear() {
