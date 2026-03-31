@@ -26,7 +26,7 @@ function pay() {
   // NOTE: In production, create order on your backend and pass server-generated order_id
   // Replace 'YOUR_RAZORPAY_KEY_ID' with your actual key
   const options = {
-    key: 'YOUR_RAZORPAY_KEY_ID',
+    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
     amount: props.amount * 100, // paise
     currency: 'INR',
     name: 'NAQSHINK',
