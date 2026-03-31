@@ -1,5 +1,5 @@
 <template>
-  <div class="page-top min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12" style="background:var(--bg)">
     <div class="w-full max-w-4xl grid md:grid-cols-2 gap-8">
 
       <!-- Login form -->

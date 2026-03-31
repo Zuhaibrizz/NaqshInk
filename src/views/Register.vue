@@ -1,5 +1,5 @@
 <template>
-  <div class="page-top min-h-screen flex items-center justify-center px-4">
+  <div class="min-h-screen flex items-center justify-center px-4" style="background:var(--bg)">
     <div class="w-full max-w-md">
       <div class="card p-8">
         <h1 class="font-display text-3xl font-bold mb-2 text-center">Create Account</h1>

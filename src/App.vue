@@ -1,13 +1,13 @@
 <template>
   <div>
-    <Navbar v-if="!isAdminRoute" @open-search="searchOpen = true" />
+    <Navbar v-if="showChrome" @open-search="searchOpen = true" />
     <RouterView />
-    <Footer v-if="!isAdminRoute" />
+    <Footer v-if="showChrome" />
     <CartDrawer />
     <SearchDrawer :is-open="searchOpen" @close="searchOpen = false" />
 
     <!-- WhatsApp floating button -->
-    <a v-if="!isAdminRoute"
+    <a v-if="showChrome"
       href="https://wa.me/911169656663?text=Hi%20NAQSHINK%2C%20I%20have%20a%20query"
       target="_blank" rel="noopener noreferrer"
       class="fixed bottom-6 left-6 z-50 group flex items-center" aria-label="Chat on WhatsApp">
