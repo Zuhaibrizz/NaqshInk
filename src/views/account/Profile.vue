@@ -66,8 +66,11 @@
               <input v-model="form.state" class="input" placeholder="State" />
               <input v-model="form.pincode" class="input" placeholder="Pincode" />
             </div>
+            <p v-if="saveError" class="text-red-400 text-sm">{{ saveError }}</p>
             <p v-if="saved" class="text-green-400 text-sm">✓ Profile updated!</p>
-            <button type="submit" class="btn-primary">Save Changes</button>
+            <button type="submit" :disabled="saveLoading" class="btn-primary disabled:opacity-60">
+              {{ saveLoading ? 'Saving...' : 'Save Changes' }}
+            </button>
           </form>
         </div>
 
@@ -80,7 +83,9 @@
             <input v-model="pwd.confirm" type="password" placeholder="Confirm New Password" class="input" />
             <p v-if="pwdError" class="text-red-400 text-sm">{{ pwdError }}</p>
             <p v-if="pwdSaved" class="text-green-400 text-sm">✓ Password updated!</p>
-            <button type="submit" class="btn-outline">Update Password</button>
+            <button type="submit" :disabled="pwdLoading" class="btn-outline disabled:opacity-60">
+              {{ pwdLoading ? 'Updating...' : 'Update Password' }}
+            </button>
           </form>
         </div>
 
@@ -111,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useOrderStore } from '@/stores/orders'
 import { useCustomOrderStore } from '@/stores/customOrders'
@@ -122,53 +127,76 @@ const auth = useAuthStore()
 const orderStore = useOrderStore()
 const customStore = useCustomOrderStore()
 
-const myOrders = computed(() => orderStore.getByUser(auth.user?.id))
-const myCustom = computed(() => customStore.getByUser(auth.user?.id))
+const myOrders = computed(() => orderStore.orders)
+const myCustom = computed(() => customStore.submissions)
 const totalSpent = computed(() => myOrders.value.reduce((s, o) => s + o.total, 0))
 
 const saved = ref(false)
+const saveError = ref('')
 const pwdError = ref('')
 const pwdSaved = ref(false)
+const pwdLoading = ref(false)
+const saveLoading = ref(false)
 
 const form = ref({
-  name: auth.user?.name || '',
-  email: auth.user?.email || '',
-  phone: auth.user?.phone || '',
+  name:    auth.user?.name    || '',
+  email:   auth.user?.email   || '',
+  phone:   auth.user?.phone   || '',
   address: auth.user?.address || '',
-  city: auth.user?.city || '',
-  state: auth.user?.state || '',
+  city:    auth.user?.city    || '',
+  state:   auth.user?.state   || '',
   pincode: auth.user?.pincode || '',
 })
 
 const pwd = ref({ current: '', new: '', confirm: '' })
 
-function saveProfile() {
-  const users = JSON.parse(localStorage.getItem('naqshink_users') || '[]')
-  const idx = users.findIndex(u => u.id === auth.user.id)
-  if (idx !== -1) {
-    users[idx] = { ...users[idx], ...form.value }
-    localStorage.setItem('naqshink_users', JSON.stringify(users))
-    auth.user.name = form.value.name
-    localStorage.setItem('naqshink_user', JSON.stringify(users[idx]))
+onMounted(() => orderStore.fetchMine())
+
+async function saveProfile() {
+  saveError.value = ''
+  saveLoading.value = true
+  try {
+    await auth.updateProfile({
+      name:    form.value.name,
+      phone:   form.value.phone,
+      address: form.value.address,
+      city:    form.value.city,
+      state:   form.value.state,
+      pincode: form.value.pincode,
+    })
+    saved.value = true
+    setTimeout(() => saved.value = false, 3000)
+  } catch (e) {
+    saveError.value = e.message
+  } finally {
+    saveLoading.value = false
   }
-  saved.value = true
-  setTimeout(() => saved.value = false, 3000)
 }
 
-function changePassword() {
+async function changePassword() {
   pwdError.value = ''
-  const users = JSON.parse(localStorage.getItem('naqshink_users') || '[]')
-  const user = users.find(u => u.id === auth.user.id)
-  if (!user || user.password !== pwd.value.current) { pwdError.value = 'Current password is incorrect'; return }
   if (pwd.value.new !== pwd.value.confirm) { pwdError.value = 'Passwords do not match'; return }
-  user.password = pwd.value.new
-  localStorage.setItem('naqshink_users', JSON.stringify(users))
-  pwd.value = { current: '', new: '', confirm: '' }
-  pwdSaved.value = true
-  setTimeout(() => pwdSaved.value = false, 3000)
+  if (pwd.value.new.length < 6) { pwdError.value = 'Password must be at least 6 characters'; return }
+  pwdLoading.value = true
+  try {
+    await auth.changePassword(pwd.value.current, pwd.value.new)
+    pwd.value = { current: '', new: '', confirm: '' }
+    pwdSaved.value = true
+    setTimeout(() => pwdSaved.value = false, 3000)
+  } catch (e) {
+    pwdError.value = e.message
+  } finally {
+    pwdLoading.value = false
+  }
 }
 
 function statusClass(s) {
-  return { confirmed: 'bg-blue-900/40 text-blue-400', processing: 'bg-yellow-900/40 text-yellow-400', shipped: 'bg-purple-900/40 text-purple-400', delivered: 'bg-green-900/40 text-green-400', cancelled: 'bg-red-900/40 text-red-400' }[s] || 'bg-gray-700 text-gray-400'
+  return {
+    confirmed:  'bg-blue-900/40 text-blue-400',
+    processing: 'bg-yellow-900/40 text-yellow-400',
+    shipped:    'bg-purple-900/40 text-purple-400',
+    delivered:  'bg-green-900/40 text-green-400',
+    cancelled:  'bg-red-900/40 text-red-400'
+  }[s] || 'bg-gray-700 text-gray-400'
 }
 </script>

@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useProductStore } from '@/stores/products'
 
 const store = useProductStore()
@@ -71,15 +71,17 @@ const showModal = ref(false)
 const editing = ref(null)
 const form = ref({})
 
+onMounted(() => store.fetchAll())
+
 function openModal(p = null) {
   editing.value = p
   form.value = p ? { ...p } : { name: '', image: '', category: 'Minimal', description: '', price: 299, originalPrice: 499, stock: 50, tags: [] }
   showModal.value = true
 }
 
-function save() {
-  if (editing.value) store.updateProduct(editing.value.id, form.value)
-  else store.addProduct(form.value)
+async function save() {
+  if (editing.value) await store.updateProduct(editing.value.id, form.value)
+  else await store.addProduct(form.value)
   showModal.value = false
 }
 </script>

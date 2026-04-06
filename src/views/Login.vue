@@ -105,10 +105,10 @@ function fillAdmin() {
   submit()
 }
 
-function submit() {
+async function submit() {
   error.value = ''
   try {
-    auth.login(email.value, password.value)
+    await auth.login(email.value, password.value)
     router.push(auth.isAdmin ? '/admin/overview' : '/')
   } catch (e) {
     error.value = e.message

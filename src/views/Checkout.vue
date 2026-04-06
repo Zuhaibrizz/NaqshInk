@@ -1,5 +1,5 @@
 <template>
-  <div class="page-top min-h-screen max-w-5xl mx-auto px-4 py-12">
+  <div class="page-top min-h-screen max-w-5xl mx-auto px-4 py-12" style="padding-top:9rem">
     <h1 class="font-display text-4xl font-bold mb-10">Checkout</h1>
 
     <div class="grid md:grid-cols-2 gap-10">
@@ -117,8 +117,8 @@
           <span>₹{{ item.price * item.qty }}</span>
         </div>
 
-        <div v-if="autoDeal.discount > 0" class="flex justify-between text-sm text-green-400">
-          <span>Multi-buy discount</span><span>−₹{{ autoDeal.discount }}</span>
+        <div v-for="deal in autoDeals" :key="deal.id" class="flex justify-between text-sm text-green-400">
+          <span class="truncate mr-2">{{ deal.label }}</span><span>−₹{{ deal.discount }}</span>
         </div>
 
         <div class="flex justify-between text-sm" style="color:var(--text-muted)">
@@ -312,9 +312,10 @@ async function detectLocation() {
   )
 }
 
-const autoDeal = computed(() => offerStore.autoDiscount(cart.total, cart.count))
+const autoDeals = computed(() => offerStore.autoApply(cart.items, cart.total, cart.count))
+const autoDiscountTotal = computed(() => autoDeals.value.reduce((s, d) => s + d.discount, 0))
 const shipping = computed(() => cart.total >= 399 ? 0 : 49)
-const finalTotal = computed(() => Math.max(0, cart.total - autoDeal.value.discount + shipping.value))
+const finalTotal = computed(() => Math.max(0, cart.total - autoDiscountTotal.value + shipping.value))
 
 function onPaymentSuccess(response) {
   const order = orders.createOrder(

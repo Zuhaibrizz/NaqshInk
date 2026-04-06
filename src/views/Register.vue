@@ -34,9 +34,9 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 
-function submit() {
+async function submit() {
   try {
-    auth.register(name.value, email.value, password.value)
+    await auth.register(name.value, email.value, password.value)
     router.push('/')
   } catch (e) {
     error.value = e.message

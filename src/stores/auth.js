@@ -1,48 +1,50 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { authApi } from '@/lib/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('naqshink_user') || 'null'))
+  const token = ref(localStorage.getItem('naqshink_token') || null)
 
-  const isLoggedIn = computed(() => !!user.value)
-  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isLoggedIn = computed(() => !!token.value && !!user.value)
+  const isAdmin    = computed(() => user.value?.role === 'admin')
 
-  function login(email, password) {
-    // Simulate auth — replace with real API call
-    const users = JSON.parse(localStorage.getItem('naqshink_users') || '[]')
-    const found = users.find(u => u.email === email && u.password === password)
-    if (!found) throw new Error('Invalid credentials')
-    user.value = found
-    localStorage.setItem('naqshink_user', JSON.stringify(found))
-    return found
+  function setSession(data) {
+    token.value = data.token
+    user.value  = data.user
+    localStorage.setItem('naqshink_token', data.token)
+    localStorage.setItem('naqshink_user',  JSON.stringify(data.user))
   }
 
-  function register(name, email, password) {
-    const users = JSON.parse(localStorage.getItem('naqshink_users') || '[]')
-    if (users.find(u => u.email === email)) throw new Error('Email already exists')
-    const newUser = { id: Date.now(), name, email, password, role: 'user' }
-    users.push(newUser)
-    localStorage.setItem('naqshink_users', JSON.stringify(users))
-    user.value = newUser
-    localStorage.setItem('naqshink_user', JSON.stringify(newUser))
-    return newUser
+  async function login(email, password) {
+    const data = await authApi.login(email, password)
+    setSession(data)
+    return data.user
+  }
+
+  async function register(name, email, password) {
+    const data = await authApi.register(name, email, password)
+    setSession(data)
+    return data.user
+  }
+
+  async function updateProfile(form) {
+    const updated = await authApi.profile(form)
+    user.value = { ...user.value, ...updated }
+    localStorage.setItem('naqshink_user', JSON.stringify(user.value))
+    return updated
+  }
+
+  async function changePassword(current, newPassword) {
+    return authApi.password(current, newPassword)
   }
 
   function logout() {
-    user.value = null
+    user.value  = null
+    token.value = null
+    localStorage.removeItem('naqshink_token')
     localStorage.removeItem('naqshink_user')
   }
 
-  // Seed admin on first load
-  function seedAdmin() {
-    const users = JSON.parse(localStorage.getItem('naqshink_users') || '[]')
-    if (!users.find(u => u.email === 'admin@naqshink.in')) {
-      users.push({ id: 1, name: 'Admin', email: 'admin@naqshink.in', password: 'admin123', role: 'admin' })
-      localStorage.setItem('naqshink_users', JSON.stringify(users))
-    }
-  }
-
-  seedAdmin()
-
-  return { user, isLoggedIn, isAdmin, login, register, logout }
+  return { user, token, isLoggedIn, isAdmin, login, register, logout, updateProfile, changePassword }
 })

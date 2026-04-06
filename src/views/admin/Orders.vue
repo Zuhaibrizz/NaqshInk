@@ -54,11 +54,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 
 const orders = useOrderStore()
 const statuses = ['confirmed', 'processing', 'shipped', 'delivered', 'cancelled']
+
+onMounted(() => orders.fetchAll())
 
 const stats = computed(() => [
   { label: 'Total Orders', value: orders.orders.length, color: 'text-white' },

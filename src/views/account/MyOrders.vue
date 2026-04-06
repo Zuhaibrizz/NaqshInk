@@ -124,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useOrderStore } from '@/stores/orders'
 import { useCustomOrderStore } from '@/stores/customOrders'
@@ -133,14 +133,18 @@ const auth = useAuthStore()
 const orderStore = useOrderStore()
 const customStore = useCustomOrderStore()
 
-const myOrders = computed(() => orderStore.getByUser(auth.user?.id))
-const myCustomOrders = computed(() => customStore.getByUser(auth.user?.id))
+const myOrders = computed(() => orderStore.orders)
+const myCustomOrders = computed(() => customStore.submissions)
 
 const activeTab = ref('orders')
 const tabs = computed(() => [
   { key: 'orders', label: 'My Orders', count: myOrders.value.length },
   { key: 'custom', label: 'Custom Designs', count: myCustomOrders.value.length }
 ])
+
+onMounted(async () => {
+  await orderStore.fetchMine()
+})
 
 const trackingSteps = [
   { key: 'confirmed', label: 'Confirmed' },
