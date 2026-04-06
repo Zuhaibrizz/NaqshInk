@@ -30,7 +30,9 @@ export const useOfferStore = defineStore('offers', () => {
   }
 
   async function updateOffer(id, data) {
-    const o = await offerApi.update(id, { ...data, min_order: data.minOrder })
+    const payload = { ...data }
+    if (data.minOrder !== undefined) payload.min_order = data.minOrder
+    const o = await offerApi.update(id, payload)
     const i = offers.value.findIndex(x => x.id === id)
     if (i !== -1) offers.value[i] = normalise(o)
   }
@@ -43,9 +45,11 @@ export const useOfferStore = defineStore('offers', () => {
   // Validate coupon code via API (for general % / flat offers)
   async function applyCode(code, cartTotal, cartCount, cartItems = []) {
     try {
-      return await offerApi.validate(code, cartTotal, cartCount, cartItems)
-    } catch (e) {
-      return { valid: false, message: e.message }
+      const result = await offerApi.validate(code, cartTotal, cartCount, cartItems)
+      return result
+    } catch {
+      // Network error or unexpected failure — never show raw error to user
+      return { valid: false, message: 'Could not apply coupon. Please try again.' }
     }
   }
 

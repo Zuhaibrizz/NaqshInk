@@ -58,18 +58,20 @@
     <div class="border-t border-ink-gray px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-gray-600">
       <p>© 2026 NAQSHINK. All rights reserved.</p>
       <div class="flex items-center gap-4">
-        <span>📞 +91 011-6965-6663</span>
-        <a href="mailto:help@naqshink.in" class="hover:text-ink-accent transition">help@naqshink.in</a>
+        <span>📞 {{ contact.phone }}</span>
+        <a :href="`mailto:${contact.emailSupport}`" class="hover:text-ink-accent transition">{{ contact.emailSupport }}</a>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
+import { contact, whatsappUrl } from '@/lib/contact'
+
 const socials = [
-  { label: 'Instagram', icon: '📸', href: 'https://www.instagram.com/naqshink_/' },
-  { label: 'Facebook', icon: '👍', href: 'https://www.facebook.com/naqshink' },
-  { label: 'YouTube', icon: '▶️', href: 'https://www.youtube.com/@naqshink' },
-  { label: 'WhatsApp', icon: '💬', href: 'https://wa.me/911169656663' },
+  { label: 'Instagram', icon: '📸', href: contact.instagram },
+  { label: 'Facebook',  icon: '👍', href: contact.facebook },
+  { label: 'YouTube',   icon: '▶️', href: contact.youtube },
+  { label: 'WhatsApp',  icon: '💬', href: whatsappUrl() },
 ]
 </script>

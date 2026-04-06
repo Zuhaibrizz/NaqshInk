@@ -39,8 +39,11 @@ html.light {
     @apply font-sans transition-colors duration-300;
   }
   * { scroll-behavior: smooth; }
-  .page-top { padding-top: 7rem; }
-  @media (min-width: 768px) { .page-top { padding-top: 8rem; } }
+}
+
+@layer utilities {
+  .page-top { padding-top: 5rem; }
+  @media (min-width: 768px) { .page-top { padding-top: 7.5rem; } }
 }
 
 @layer components {

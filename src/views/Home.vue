@@ -52,11 +52,7 @@
         </div>
       </div>
 
-      <!-- Scroll indicator -->
-      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-fade-in" style="animation-delay:1.2s">
-        <p class="text-xs text-gray-600 tracking-widest uppercase">Scroll</p>
-        <div class="w-px h-10 bg-gradient-to-b from-ink-accent to-transparent animate-pulse"></div>
-      </div>
+
     </section>
 
     <!-- ── MARQUEE STRIP ── -->

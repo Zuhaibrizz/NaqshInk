@@ -52,7 +52,7 @@
                 <div class="flex flex-col items-center">
                   <div :class="stepDone(order.status, step.key) ? 'bg-ink-accent text-ink-black' : 'bg-ink-gray text-gray-500'"
                     class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all">
-                    {{ stepDone(order.status, step.key) ? '✓' : i + 1 }}
+                    {{ stepDone(order.status, step.key) ? '✓' : step.icon }}
                   </div>
                   <p class="text-xs mt-1 text-center w-16 leading-tight"
                     :class="stepDone(order.status, step.key) ? 'text-ink-accent' : 'text-gray-600'">
@@ -63,6 +63,31 @@
                   :class="stepDone(order.status, trackingSteps[i+1].key) ? 'bg-ink-accent' : 'bg-ink-gray'"
                   class="flex-1 h-0.5 mb-5 transition-all">
                 </div>
+              </div>
+            </div>
+
+            <!-- Delhivery live tracking card -->
+            <div v-if="order.trackingNumber" class="mt-4 rounded-xl p-4 space-y-2"
+              style="background:var(--bg-input);border:1px solid var(--border)">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🚚</span>
+                  <div>
+                    <p class="text-xs font-semibold" style="color:var(--text)">{{ order.courier || 'Delhivery' }}</p>
+                    <p class="font-mono text-xs text-ink-accent">AWB: {{ order.trackingNumber }}</p>
+                  </div>
+                </div>
+                <a :href="`https://www.delhivery.com/track/package/${order.trackingNumber}`"
+                  target="_blank"
+                  class="text-xs px-3 py-1.5 rounded-full border border-ink-accent/30 text-ink-accent hover:bg-ink-accent/10 transition">
+                  Track on Delhivery ↗
+                </a>
+              </div>
+              <div v-if="order.trackingStatus" class="flex items-center gap-2 text-xs" style="color:var(--text-muted)">
+                <span>📋</span> {{ order.trackingStatus }}
+              </div>
+              <div v-if="order.trackingLocation" class="flex items-center gap-2 text-xs" style="color:var(--text-muted)">
+                <span>📍</span> {{ order.trackingLocation }}
               </div>
             </div>
           </div>
@@ -81,6 +106,16 @@
                 Shipped to: {{ order.address.city }}, {{ order.address.state }} – {{ order.address.pincode }}
               </p>
               <p class="font-bold text-ink-accent">₹{{ order.total }}</p>
+            </div>
+            <!-- Cancel button — only for confirmed orders -->
+            <div v-if="order.status === 'confirmed'" class="mt-4 pt-4 border-t border-ink-gray flex justify-end">
+              <button @click="confirmCancel(order)"
+                class="text-xs px-4 py-2 rounded-full border border-red-800 text-red-400 hover:bg-red-900/20 transition">
+                Cancel Order
+              </button>
+            </div>
+            <div v-if="order.status === 'cancelled'" class="mt-4 pt-4 border-t border-ink-gray">
+              <p class="text-xs text-red-400">This order has been cancelled.</p>
             </div>
           </div>
         </div>
@@ -121,6 +156,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Cancel confirmation modal -->
+  <Teleport to="body">
+    <div v-if="cancelTarget" class="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style="background:rgba(0,0,0,0.7)" @click.self="cancelTarget=null">
+      <div class="card p-6 max-w-sm w-full space-y-4">
+        <h3 class="font-semibold text-lg">Cancel Order?</h3>
+        <p class="text-sm text-gray-400">
+          Are you sure you want to cancel order
+          <span class="text-ink-accent font-mono">{{ cancelTarget.id }}</span>?
+          This cannot be undone.
+        </p>
+        <p v-if="cancelError" class="text-red-400 text-xs">{{ cancelError }}</p>
+        <div class="flex gap-3 justify-end">
+          <button @click="cancelTarget=null" class="btn-outline text-sm py-2 px-4">Keep Order</button>
+          <button @click="doCancel" :disabled="cancelLoading"
+            class="text-sm px-4 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold transition disabled:opacity-60">
+            {{ cancelLoading ? 'Cancelling...' : 'Yes, Cancel' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -146,14 +204,39 @@ onMounted(async () => {
   await orderStore.fetchMine()
 })
 
+// ── Cancel order ──
+const cancelTarget = ref(null)
+const cancelLoading = ref(false)
+const cancelError = ref('')
+
+function confirmCancel(order) {
+  cancelTarget.value = order
+  cancelError.value = ''
+}
+
+async function doCancel() {
+  if (!cancelTarget.value) return
+  cancelLoading.value = true
+  cancelError.value = ''
+  try {
+    await orderStore.cancelOrder(cancelTarget.value.id)
+    cancelTarget.value = null
+  } catch (e) {
+    cancelError.value = e.message
+  } finally {
+    cancelLoading.value = false
+  }
+}
+
 const trackingSteps = [
-  { key: 'confirmed', label: 'Confirmed' },
-  { key: 'processing', label: 'Processing' },
-  { key: 'shipped', label: 'Shipped' },
-  { key: 'delivered', label: 'Delivered' }
+  { key: 'confirmed',        label: 'Confirmed',    icon: '1' },
+  { key: 'printed',          label: 'Printed',      icon: '2' },
+  { key: 'dispatched',       label: 'Dispatched',   icon: '3' },
+  { key: 'in_transit',       label: 'In Transit',   icon: '4' },
+  { key: 'delivered',        label: 'Delivered',    icon: '5' },
 ]
 
-const statusOrder = ['confirmed', 'processing', 'shipped', 'delivered']
+const statusOrder = ['confirmed', 'processing', 'printed', 'dispatched', 'in_transit', 'out_for_delivery', 'delivered']
 
 function stepDone(orderStatus, stepKey) {
   if (orderStatus === 'cancelled') return false
@@ -162,11 +245,14 @@ function stepDone(orderStatus, stepKey) {
 
 function statusClass(s) {
   return {
-    confirmed: 'bg-blue-900/40 text-blue-400',
-    processing: 'bg-yellow-900/40 text-yellow-400',
-    shipped: 'bg-purple-900/40 text-purple-400',
-    delivered: 'bg-green-900/40 text-green-400',
-    cancelled: 'bg-red-900/40 text-red-400'
+    confirmed:        'bg-blue-900/40 text-blue-400',
+    processing:       'bg-yellow-900/40 text-yellow-400',
+    printed:          'bg-orange-900/40 text-orange-400',
+    dispatched:       'bg-indigo-900/40 text-indigo-400',
+    in_transit:       'bg-purple-900/40 text-purple-400',
+    out_for_delivery: 'bg-cyan-900/40 text-cyan-400',
+    delivered:        'bg-green-900/40 text-green-400',
+    cancelled:        'bg-red-900/40 text-red-400'
   }[s] || 'bg-gray-700 text-gray-400'
 }
 

@@ -40,9 +40,21 @@ export const useOrderStore = defineStore('orders', () => {
     if (i !== -1) orders.value[i] = normalise(updated)
   }
 
+  async function updateTracking(id, data) {
+    const updated = await orderApi.setTracking(id, data)
+    const i = orders.value.findIndex(o => o.id === id)
+    if (i !== -1) orders.value[i] = normalise(updated)
+  }
+
+  async function cancelOrder(id) {
+    const updated = await orderApi.cancel(id)
+    const i = orders.value.findIndex(o => o.id === id)
+    if (i !== -1) orders.value[i] = normalise(updated)
+  }
+
   function getByUser(userId) {
     return orders.value.filter(o => (o.userId ?? o.user_id) === userId)
   }
 
-  return { orders, loading, fetchAll, fetchMine, createOrder, updateStatus, getByUser }
+  return { orders, loading, fetchAll, fetchMine, createOrder, updateStatus, updateTracking, cancelOrder, getByUser }
 })

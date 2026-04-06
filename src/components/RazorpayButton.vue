@@ -19,55 +19,63 @@
 
 <script setup>
 import { ref } from 'vue'
+import { paymentApi } from '@/lib/api'
 
 const props = defineProps({
   amount: Number,
   name: String,
   email: String,
   phone: String,
-  orderId: String,
   disabled: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['success', 'failure'])
 const loading = ref(false)
 
-function pay() {
+async function pay() {
   loading.value = true
+  try {
+    // Create order on backend first
+    const order = await paymentApi.createOrder(props.amount)
 
-  // NOTE: In production, create order on your backend and pass server-generated order_id
-  // Replace 'YOUR_RAZORPAY_KEY_ID' with your actual key
-  const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-    amount: props.amount * 100, // paise
-    currency: 'INR',
-    name: 'NAQSHINK',
-    description: 'Semi-Permanent Tattoo Order',
-    image: 'https://via.placeholder.com/60x60/c8a96e/000?text=INK',
-    // order_id: props.orderId, // from backend
-    prefill: {
-      name: props.name,
-      email: props.email,
-      contact: props.phone
-    },
-    theme: { color: '#c8a96e' },
-    handler(response) {
-      loading.value = false
-      emit('success', response)
-    },
-    modal: {
-      ondismiss() {
-        loading.value = false
-        emit('failure', 'Payment cancelled')
+    const options = {
+      key:      import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount:   order.amount,
+      currency: order.currency,
+      order_id: order.orderId,
+      name:     'NAQSHINK',
+      description: 'Semi-Permanent Tattoo Order',
+      image:    'https://via.placeholder.com/60x60/c8a96e/000?text=INK',
+      prefill:  { name: props.name, email: props.email, contact: props.phone },
+      theme:    { color: '#c8a96e' },
+      async handler(response) {
+        try {
+          // Verify signature on backend
+          await paymentApi.verify(response)
+          loading.value = false
+          emit('success', response)
+        } catch {
+          loading.value = false
+          emit('failure', 'Payment verification failed')
+        }
+      },
+      modal: {
+        ondismiss() {
+          loading.value = false
+          emit('failure', 'Payment cancelled')
+        }
       }
     }
-  }
 
-  const rzp = new window.Razorpay(options)
-  rzp.on('payment.failed', (res) => {
+    const rzp = new window.Razorpay(options)
+    rzp.on('payment.failed', (res) => {
+      loading.value = false
+      emit('failure', res.error.description)
+    })
+    rzp.open()
+  } catch (e) {
     loading.value = false
-    emit('failure', res.error.description)
-  })
-  rzp.open()
+    emit('failure', e.message)
+  }
 }
 </script>

@@ -9,15 +9,12 @@
     </div>
 
     <div v-else class="grid md:grid-cols-3 gap-8">
-      <!-- Items -->
       <div class="md:col-span-2 space-y-4">
-        <!-- Auto-applied offer banners -->
         <div v-for="deal in autoDeals" :key="deal.id"
           class="rounded-xl px-4 py-3 text-sm flex items-center gap-2"
           style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);color:#4ade80">
           🎉 {{ deal.label }} — saving ₹{{ deal.discount }}!
         </div>
-
         <div v-for="item in cart.items" :key="item.id" class="card flex gap-4 p-4">
           <img :src="item.image" :alt="item.name" class="w-24 h-24 object-cover rounded-xl flex-shrink-0" />
           <div class="flex-1">
@@ -25,78 +22,54 @@
             <p class="text-sm" style="color:var(--text-faint)">{{ item.category }}</p>
             <p class="font-bold mt-1" style="color:var(--accent)">₹{{ item.price }}</p>
             <div class="flex items-center gap-3 mt-3">
-              <button @click="cart.updateQty(item.id, item.qty - 1)"
-                class="w-8 h-8 rounded-full flex items-center justify-center transition"
-                style="background:var(--bg-input)">−</button>
+              <button @click="cart.updateQty(item.id, item.qty - 1)" class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--bg-input)">−</button>
               <span style="color:var(--text)">{{ item.qty }}</span>
-              <button @click="cart.updateQty(item.id, item.qty + 1)"
-                class="w-8 h-8 rounded-full flex items-center justify-center transition"
-                style="background:var(--bg-input)">+</button>
+              <button @click="cart.updateQty(item.id, item.qty + 1)" class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--bg-input)">+</button>
             </div>
           </div>
-          <div">
-            <button @click="cart.removeItem(item.id)" class="text-xs transition hover:text-red-400" style="color:var(--text-faint)">Remove</button>
+          <div class="flex flex-col items-end justify-between">
+            <button @click="cart.removeItem(item.id)" class="text-xs hover:text-red-400 transition" style="color:var(--text-faint)">Remove</button>
             <p class="font-bold" style="color:var(--text)">₹{{ item.price * item.qty }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Summary -->
       <div class="card p-6 h-fit space-y-4">
         <h2 class="font-semibold text-lg" style="color:var(--text)">Order Summary</h2>
-
         <div class="flex justify-between text-sm" style="color:var(--text-muted)">
           <span>Subtotal</span><span>₹{{ cart.total }}</span>
         </div>
-
-        <!-- Auto-applied discounts -->
         <div v-for="deal in autoDeals" :key="deal.id" class="flex justify-between text-sm text-green-400">
-          <span>{{ deal.label }}</span><span>−₹{{ deal.discount }}</span>
+          <span class="truncate mr-2 text-xs">{{ deal.label }}</span>
+          <span class="flex-shrink-0">−₹{{ deal.discount }}</span>
         </div>
-
-   <!-- Coupon discount -->
         <div v-if="appliedDiscount > 0" class="flex justify-between text-sm text-green-400">
           <span>Coupon ({{ appliedCode }})</span><span>−₹{{ appliedDiscount }}</span>
         </div>
-
         <div class="flex justify-between text-sm" style="color:var(--text-muted)">
           <span>Shipping</span>
-          <span :class="cart.total >= 399 ? 'text-green-400' : ''">
-            {{ cart.total >= 399 ? 'FREE' : '₹49' }}
-          </span>
+          <span :class="cart.total >= 399 ? 'text-green-400' : ''">{{ cart.total >= 399 ? 'FREE' : '₹49' }}</span>
         </div>
-
-stify-between font-bold text-lg" style="border-top:1px solid var(--border);padding-top:1rem">
-          <span style="color:">Total</span>
+        <div class="flex justify-between font-bold text-lg" style="border-top:1px solid var(--border);padding-top:1rem">
+          <span style="color:var(--text)">Total</span>
           <span style="color:var(--accent)">₹{{ finalTotal }}</span>
         </div>
 
-        <!-- Coupon input — only shown if there are general coupon offers -->
-        <div v-if="couponOffers.length" class="space-y-2">
-          <p class="text-xs font-medium" style="color:var(--text-faint)">Have a coupon code?</p>
+        <div class="space-y-2" style="border-top:1px solid var(--border);padding-top:1rem">
+          <p class="text-xs font-medium" style="color:var(--text-faint)">Have a promo code?</p>
           <div class="flex gap-2">
-            <input v-model="couponInput" placeholder="Enter code" class="input text-sm py-2 flex-1"
-"text-transform:uppercase" />
+            <input v-model="couponInput" placeholder="Enter coupon code" class="input text-sm py-2 flex-1"
+              @keyup.enter="applyCoupon" style="text-transform:uppercase" />
             <button @click="applyCoupon" class="btn-primary text-sm py-2 px-4">Apply</button>
           </div>
           <p v-if="couponMsg" :class="couponValid ? 'text-green-400' : 'text-red-400'" class="text-xs">{{ couponMsg }}</p>
-          <button v-if="appliedCode" @click="removeCoupon" class="text-xs hover:text-red-400 transition" style="color:var(--text-faint)">
-            ✕ Remove coupon
-          </button>
-          <!-- Available codes hint -->
-          <div class="space-y-1 pt-1">
-            <p v-for="o in couponOffers" :key="o.id" class="text-xs" style="color:var(--text-faint)">
-              <span class="font-mono" style="color:var(--accent)">{{ o.code }}</span> — {{ o.label }}
-            </p>
-          </div>
+          <button v-if="appliedCode" @click="removeCoupon" class="text-xs hover:text-red-400 transition" style="color:var(--text-faint)">✕ Remove coupon</button>
         </div>
 
         <RouterLink to="/checkout" class="btn-primary w-full text-center block">Checkout</RouterLink>
-        <RouterLink to="/shop" class="text-center text-sm block transition hover:opacity-80" style="color:var(--text-faint)">
-          Continue Shopping
-        </RouterLink>
+        <RouterLink to="/shop" class="text-center text-sm block hover:opacity-80 transition" style="color:var(--text-faint)">Continue Shopping</RouterLink>
       </div>
-v>
+    </div>
   </div>
 </template>
 
@@ -114,33 +87,20 @@ const couponValid = ref(false)
 const appliedCode = ref('')
 const appliedDiscount = ref(0)
 
-// Auto-applied deals (product/category/multibuy)
 const autoDeals = computed(() => offerStore.autoApply(cart.items, cart.total, cart.count))
 const autoDiscountTotal = computed(() => autoDeals.value.reduce((s, d) => s + d.discount, 0))
-
-// Only general (all-products) non-multibuy offers need a coupon code
-const couponOffers = computed(() => offerStore.couponOffers())
-
 const shipping = computed(() => cart.total >= 399 ? 0 : 49)
-const finalTotal = computed(() =>
-  Math.max(0, cart.total - autoDiscountTotal.value - appliedDiscount.value + shipping.value)
-)
+const finalTotal = computed(() => Math.max(0, cart.total - autoDiscountTotal.value - appliedDiscount.value + shipping.value))
 
 async function applyCoupon() {
   if (!couponInput.value.trim()) return
-  const result = awaitore.applyCode(couponInput.value, cart.total, cart.count, cart.items)
+  const result = await offerStore.applyCode(couponInput.value, cart.total, cart.count, cart.items)
   couponValid.value = result.valid
   couponMsg.value = result.message
-  if (result.valid) {
-    appliedCode.value = couponInput.value.toUpperCase()
-    appliedDiscount.value = result.discount
-  }
+  if (result.valid) { appliedCode.value = couponInput.value.toUpperCase(); appliedDiscount.value = result.discount }
 }
 
 function removeCoupon() {
-  appliedCode.value = ''
-  appliedDiscount.value = 0
-  couponInput.value = ''
-  couponMsg.value = ''
+  appliedCode.value = ''; appliedDiscount.value = 0; couponInput.value = ''; couponMsg.value = ''
 }
 </script>

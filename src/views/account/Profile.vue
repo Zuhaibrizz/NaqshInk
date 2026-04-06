@@ -1,5 +1,5 @@
 <template>
-  <div class="page-top min-h-screen max-w-4xl mx-auto px-4 py-12">
+  <div class="page-top min-h-screen max-w-4xl mx-auto px-4 pb-12">
     <div class="flex items-center gap-4 mb-10" data-reveal>
       <RouterLink to="/account" class="text-gray-500 hover:text-white transition text-sm">← My Orders</RouterLink>
       <span class="text-gray-700">/</span>

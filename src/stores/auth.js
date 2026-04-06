@@ -22,10 +22,27 @@ export const useAuthStore = defineStore('auth', () => {
     return data.user
   }
 
+  // Refresh user from DB — call on app mount to pick up role changes
+  async function refreshUser() {
+    if (!token.value) return
+    try {
+      const fresh = await authApi.me()
+      user.value = { ...user.value, ...fresh }
+      localStorage.setItem('naqshink_user', JSON.stringify(user.value))
+      // Also re-issue token with fresh role from DB
+      const data = await authApi.refreshToken()
+      if (data?.token) {
+        token.value = data.token
+        localStorage.setItem('naqshink_token', data.token)
+      }
+    } catch {
+      logout()
+    }
+  }
+
   async function register(name, email, password) {
-    const data = await authApi.register(name, email, password)
-    setSession(data)
-    return data.user
+    const data = await authApi.registerInit(name, email, password)
+    return data
   }
 
   async function updateProfile(form) {
@@ -46,5 +63,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('naqshink_user')
   }
 
-  return { user, token, isLoggedIn, isAdmin, login, register, logout, updateProfile, changePassword }
+  return { user, token, isLoggedIn, isAdmin, setSession, login, register, logout, updateProfile, changePassword, refreshUser }
 })

@@ -11,6 +11,7 @@ const routes = [
   { path: '/order-success', component: () => import('@/views/OrderSuccess.vue') },
   { path: '/login', component: () => import('@/views/Login.vue') },
   { path: '/register', component: () => import('@/views/Register.vue') },
+  { path: '/forgot-password', component: () => import('@/views/ForgotPassword.vue') },
   { path: '/about', component: () => import('@/views/AboutUs.vue') },
   { path: '/how-it-works', component: () => import('@/views/HowItWorks.vue') },
   { path: '/contact', component: () => import('@/views/ContactUs.vue') },
@@ -41,8 +42,17 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 })
 })
 
-router.beforeEach((to) => {
+let authReady = false
+
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
+
+  // Refresh on first load OR on every protected route navigation
+  if (!authReady || to.meta.requiresAdmin || to.meta.requiresAuth) {
+    await auth.refreshUser()
+    authReady = true
+  }
+
   if (to.meta.requiresAuth && !auth.isLoggedIn) return '/login'
   if (to.meta.requiresAdmin && !auth.isAdmin) return '/'
 })

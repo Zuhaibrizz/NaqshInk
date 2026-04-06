@@ -15,6 +15,7 @@
             <th class="p-4">Category</th>
             <th class="p-4">Price</th>
             <th class="p-4">Stock</th>
+            <th class="p-4">Status</th>
             <th class="p-4">Actions</th>
           </tr>
         </thead>
@@ -26,6 +27,15 @@
             <td class="p-4 text-ink-accent font-bold">₹{{ p.price }}</td>
             <td class="p-4">
               <span :class="p.stock > 10 ? 'text-green-400' : 'text-red-400'">{{ p.stock }}</span>
+            </td>
+            <td class="p-4">
+              <button @click="store.updateProduct(p.id, { active: p.active ? 0 : 1 })"
+                class="text-xs px-3 py-1 rounded-full font-medium transition"
+                :style="p.active
+                  ? 'background:rgba(34,197,94,0.1);color:#4ade80'
+                  : 'background:rgba(239,68,68,0.1);color:#f87171'">
+                {{ p.active ? '● Active' : '○ Hidden' }}
+              </button>
             </td>
             <td class="p-4 flex gap-2">
               <button @click="openModal(p)" class="text-xs bg-ink-gray px-3 py-1.5 rounded-lg hover:bg-ink-accent hover:text-ink-black transition">Edit</button>

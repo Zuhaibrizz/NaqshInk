@@ -38,11 +38,11 @@
               {{ c }}
             </span>
           </div>
-          <p class="text-xs text-gray-500 mt-4">Email: <a href="mailto:partner.naqshink@gmail.com" class="text-ink-accent hover:underline">partner.naqshink@gmail.com</a></p>
+          <p class="text-xs text-gray-500 mt-4">Email: <a :href="`mailto:${contact.emailPartner}`" class="text-ink-accent hover:underline">{{ contact.emailPartner }}</a></p>
         </div>
 
         <!-- WhatsApp CTA -->
-        <a href="https://wa.me/911169656663?text=Hi%20NAQSHINK%2C%20I%20have%20a%20query"
+        <a :href="whatsappUrl()"
           target="_blank"
           class="flex items-center gap-4 card p-5 hover:border-green-500 transition-all duration-300 group">
           <div class="w-12 h-12 rounded-2xl bg-green-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/30 transition">
@@ -85,15 +85,16 @@
 <script setup>
 import { ref } from 'vue'
 import { useScrollReveal } from '@/composables/useScrollReveal'
+import { contact, whatsappUrl } from '@/lib/contact'
 useScrollReveal()
 
 const sent = ref(false)
 const form = ref({ name: '', email: '', phone: '', subject: '', message: '' })
 
 const contacts = [
-  { icon: '📞', label: 'Phone', value: '+91 011-6965-6663', href: 'tel:+910116965663' },
-  { icon: '📧', label: 'Customer Support', value: 'help@naqshink.in', href: 'mailto:help@naqshink.in' },
-  { icon: '📧', label: 'Customer Care', value: 'customercare.naqshink@gmail.com', href: 'mailto:customercare.naqshink@gmail.com' },
+  { icon: '📞', label: 'Phone',            value: contact.phone,        href: contact.phoneHref },
+  { icon: '📧', label: 'Customer Support', value: contact.emailSupport, href: `mailto:${contact.emailSupport}` },
+  { icon: '📧', label: 'Customer Care',    value: contact.emailCare,    href: `mailto:${contact.emailCare}` },
 ]
 
 const collabs = ['B2B', 'Franchise Partner', 'Brand Ambassador', 'Bulk Orders', 'Social Media Collab', 'College Events', 'Sponsorship', 'Become an Artist', 'Concerts', 'Hiring']

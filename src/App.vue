@@ -8,7 +8,7 @@
 
     <!-- WhatsApp floating button -->
     <a v-if="showChrome"
-      href="https://wa.me/911169656663?text=Hi%20NAQSHINK%2C%20I%20have%20a%20query"
+      :href="`https://wa.me/${contact.whatsappNumber}?text=${contact.whatsappMsg}`"
       target="_blank" rel="noopener noreferrer"
       class="fixed bottom-6 left-6 z-50 group flex items-center" aria-label="Chat on WhatsApp">
       <span class="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25"></span>
@@ -28,6 +28,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { contact } from '@/lib/contact'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import CartDrawer from '@/components/CartDrawer.vue'

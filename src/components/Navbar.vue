@@ -6,15 +6,16 @@
     <div class="max-w-7xl mx-auto px-4 md:px-8">
       <div class="flex items-center h-16 md:h-20">
 
-        <!-- Logo centered -->
-        <RouterLink to="/" class="flex flex-col items-center group absolute left-1/2 -translate-x-1/2">
-          <span class="font-display text-2xl md:text-3xl font-bold tracking-[0.15em] leading-none transition-all duration-500 group-hover:tracking-[0.2em]"
+        <!-- Logo — absolute centered on desktop, left-aligned on mobile to avoid icon overlap -->
+        <RouterLink to="/"
+          class="flex flex-col items-center group md:absolute md:left-1/2 md:-translate-x-1/2">
+          <span class="font-display text-lg md:text-3xl font-bold tracking-[0.12em] md:tracking-[0.15em] leading-none transition-all duration-500 md:group-hover:tracking-[0.2em]"
             style="color:var(--accent)">NAQSHINK</span>
           <span class="hidden md:block text-[10px] tracking-[0.3em] uppercase mt-0.5 transition-colors duration-500"
             style="color:var(--text-faint)">Crafting Art with Tradition</span>
         </RouterLink>
 
-        <!-- Right actions -->
+        <!-- Right actions — always on the right -->
         <div class="flex items-center gap-1 ml-auto">
           <!-- Search -->
           <button @click="$emit('openSearch')" class="p-2.5 rounded-full transition-colors duration-200" style="color:var(--text-muted)" aria-label="Search">

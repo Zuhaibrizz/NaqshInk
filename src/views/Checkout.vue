@@ -1,5 +1,5 @@
 <template>
-  <div class="page-top min-h-screen max-w-5xl mx-auto px-4 py-12" style="padding-top:9rem">
+  <div class="page-top min-h-screen max-w-5xl mx-auto px-4 py-12">
     <h1 class="font-display text-4xl font-bold mb-10">Checkout</h1>
 
     <div class="grid md:grid-cols-2 gap-10">
@@ -121,6 +121,11 @@
           <span class="truncate mr-2">{{ deal.label }}</span><span>−₹{{ deal.discount }}</span>
         </div>
 
+        <!-- Coupon discount line -->
+        <div v-if="appliedDiscount > 0" class="flex justify-between text-sm text-green-400">
+          <span>Coupon ({{ appliedCode }})</span><span>−₹{{ appliedDiscount }}</span>
+        </div>
+
         <div class="flex justify-between text-sm" style="color:var(--text-muted)">
           <span>Shipping</span>
           <span :class="cart.total >= 399 ? 'text-green-400' : ''">{{ cart.total >= 399 ? 'FREE' : '₹49' }}</span>
@@ -129,6 +134,23 @@
         <div class="flex justify-between font-bold text-lg" style="border-top:1px solid var(--border);padding-top:1rem">
           <span>Total</span>
           <span style="color:var(--accent)">₹{{ finalTotal }}</span>
+        </div>
+
+        <!-- Coupon input -->
+        <div class="space-y-2" style="border-top:1px solid var(--border);padding-top:1rem">
+          <p class="text-xs font-medium" style="color:var(--text-faint)">Have a promo code?</p>
+          <div class="flex gap-2">
+            <input v-model="couponInput" placeholder="Enter coupon code"
+              class="input text-sm py-2 flex-1"
+              @keyup.enter="applyCoupon"
+              style="text-transform:uppercase" />
+            <button @click="applyCoupon" class="btn-primary text-sm py-2 px-4">Apply</button>
+          </div>
+          <p v-if="couponMsg" :class="couponValid ? 'text-green-400' : 'text-red-400'" class="text-xs">{{ couponMsg }}</p>
+          <button v-if="appliedCode" @click="removeCoupon"
+            class="text-xs hover:text-red-400 transition" style="color:var(--text-faint)">
+            ✕ Remove coupon
+          </button>
         </div>
 
         <!-- Shipping address preview -->
@@ -160,12 +182,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useOrderStore } from '@/stores/orders'
 import { useOfferStore } from '@/stores/offers'
+import { authApi } from '@/lib/api'
 import RazorpayButton from '@/components/RazorpayButton.vue'
 
 const cart = useCartStore()
@@ -174,19 +197,41 @@ const orders = useOrderStore()
 const offerStore = useOfferStore()
 const router = useRouter()
 
-const form = ref({
-  name: auth.user?.name || '',
-  email: auth.user?.email || '',
-  phone: '',
-  address: '',
-  pincode: '',
-  city: '',
-  state: '',
-  landmark: ''
-})
+function buildForm(u) {
+  return {
+    name:     u?.name     || '',
+    email:    u?.email    || '',
+    phone:    u?.phone    || '',
+    address:  u?.address  || '',
+    pincode:  u?.pincode  || '',
+    city:     u?.city     || '',
+    state:    u?.state    || '',
+    landmark: u?.landmark || ''
+  }
+}
 
-const error = ref('')
-const touched = ref({})
+const form = ref(buildForm(auth.user))
+
+// Auto-touch fields that are already filled from profile
+const touched = ref(
+  Object.fromEntries(
+    Object.keys(form.value).filter(k => form.value[k]).map(k => [k, true])
+  )
+)
+
+// Fetch fresh profile on mount — picks up any updates since last login
+onMounted(async () => {
+  try {
+    const profile = await authApi.me()
+    form.value = buildForm(profile)
+    // Re-touch filled fields
+    Object.keys(form.value).forEach(k => {
+      if (form.value[k]) touched.value[k] = true
+    })
+    // If pincode is already filled, mark it ok
+    if (/^\d{6}$/.test(form.value.pincode)) pincodeOk.value = true
+  } catch { /* not logged in or network issue — use cached data */ }
+})
 const pincodeLoading = ref(false)
 const pincodeOk = ref(false)
 const pincodeError = ref('')
@@ -314,9 +359,30 @@ async function detectLocation() {
 
 const autoDeals = computed(() => offerStore.autoApply(cart.items, cart.total, cart.count))
 const autoDiscountTotal = computed(() => autoDeals.value.reduce((s, d) => s + d.discount, 0))
-const shipping = computed(() => cart.total >= 399 ? 0 : 49)
-const finalTotal = computed(() => Math.max(0, cart.total - autoDiscountTotal.value + shipping.value))
 
+const couponInput = ref('')
+const couponMsg = ref('')
+const couponValid = ref(false)
+const appliedCode = ref('')
+const appliedDiscount = ref(0)
+
+async function applyCoupon() {
+  if (!couponInput.value.trim()) return
+  const result = await offerStore.applyCode(couponInput.value, cart.total, cart.count, cart.items)
+  couponValid.value = result.valid
+  couponMsg.value = result.message
+  if (result.valid) {
+    appliedCode.value = couponInput.value.toUpperCase()
+    appliedDiscount.value = result.discount
+  }
+}
+
+function removeCoupon() {
+  appliedCode.value = ''; appliedDiscount.value = 0; couponInput.value = ''; couponMsg.value = ''
+}
+
+const shipping = computed(() => cart.total >= 399 ? 0 : 49)
+const finalTotal = computed(() => Math.max(0, cart.total - autoDiscountTotal.value - appliedDiscount.value + shipping.value))
 function onPaymentSuccess(response) {
   const order = orders.createOrder(
     auth.user.id,

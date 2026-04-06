@@ -10,6 +10,9 @@
         <form @submit.prevent="submit" class="space-y-4">
           <input v-model="email" type="email" placeholder="Email" class="input" required />
           <input v-model="password" type="password" placeholder="Password" class="input" required />
+          <div class="flex justify-end">
+            <RouterLink to="/forgot-password" class="text-xs text-ink-accent hover:underline">Forgot password?</RouterLink>
+          </div>
           <p v-if="error" class="text-red-400 text-sm bg-red-900/20 rounded-lg px-3 py-2">{{ error }}</p>
           <button type="submit" class="btn-primary w-full text-center">Sign In</button>
         </form>
@@ -108,8 +111,8 @@ function fillAdmin() {
 async function submit() {
   error.value = ''
   try {
-    await auth.login(email.value, password.value)
-    router.push(auth.isAdmin ? '/admin/overview' : '/')
+    const user = await auth.login(email.value, password.value)
+    router.push(user.role === 'admin' ? '/admin/overview' : '/')
   } catch (e) {
     error.value = e.message
   }
