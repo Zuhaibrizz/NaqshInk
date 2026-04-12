@@ -92,24 +92,39 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useOrderStore } from '@/stores/orders'
 import { useProductStore } from '@/stores/products'
 import { useCustomOrderStore } from '@/stores/customOrders'
 import { useOfferStore } from '@/stores/offers'
+import { customerApi } from '@/lib/api'
+import { ref } from 'vue'
 
 const orderStore = useOrderStore()
 const productStore = useProductStore()
 const customStore = useCustomOrderStore()
 const offerStore = useOfferStore()
 
+const customerCount = ref(0)
+
+onMounted(async () => {
+  await Promise.all([
+    orderStore.fetchAll(),
+    productStore.fetchAll(),
+    offerStore.fetchAll(),
+  ])
+  try {
+    const customers = await customerApi.list()
+    customerCount.value = customers.filter(c => c.role !== 'admin').length
+  } catch {}
+})
+
 const totalRevenue = computed(() => orderStore.orders.reduce((s, o) => s + o.total, 0))
-const customers = computed(() => JSON.parse(localStorage.getItem('naqshink_users') || '[]').filter(u => u.role !== 'admin'))
 
 const stats = computed(() => [
   { label: 'Total Revenue', value: '₹' + totalRevenue.value.toLocaleString('en-IN'), icon: '💰', color: 'text-ink-accent', sub: 'All time' },
   { label: 'Total Orders', value: orderStore.orders.length, icon: '📦', color: 'text-white', sub: orderStore.orders.filter(o => o.status === 'confirmed').length + ' pending' },
-  { label: 'Customers', value: customers.value.length, icon: '👥', color: 'text-blue-400', sub: 'Registered users' },
+  { label: 'Customers', value: customerCount.value, icon: '👥', color: 'text-blue-400', sub: 'Registered users' },
   { label: 'Custom Requests', value: customStore.submissions.length, icon: '✏️', color: 'text-purple-400', sub: customStore.submissions.filter(s => s.printStatus === 'pending').length + ' pending' },
 ])
 

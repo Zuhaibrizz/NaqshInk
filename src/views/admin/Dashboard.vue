@@ -72,6 +72,7 @@ const links = computed(() => [
   { to: '/admin/orders', icon: '📦', label: 'Orders', badge: pendingOrders.value || null },
   { to: '/admin/custom-orders', icon: '✏️', label: 'Custom Orders', badge: pendingCustom.value || null },
   { to: '/admin/offers', icon: '🏷️', label: 'Offers & Coupons' },
+  { to: '/admin/content', icon: '📝', label: 'Site Content' },
   { to: '/admin/customers', icon: '👥', label: 'Customers' },
 ])
 

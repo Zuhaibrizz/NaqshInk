@@ -43,7 +43,8 @@ html.light {
 
 @layer utilities {
   .page-top { padding-top: 5rem; }
-  @media (min-width: 768px) { .page-top { padding-top: 7.5rem; } }
+  /* iPad and desktop — two-row navbar needs more clearance */
+  @media (min-width: 768px) { .page-top { padding-top: 10.5rem; } }
 }
 
 @layer components {

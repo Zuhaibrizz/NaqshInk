@@ -31,7 +31,8 @@ const routes = [
       { path: 'orders', component: () => import('@/views/admin/Orders.vue') },
       { path: 'customers', component: () => import('@/views/admin/Customers.vue') },
       { path: 'custom-orders', component: () => import('@/views/admin/CustomOrders.vue') },
-      { path: 'offers', component: () => import('@/views/admin/Offers.vue') }
+      { path: 'offers', component: () => import('@/views/admin/Offers.vue') },
+      { path: 'content', component: () => import('@/views/admin/Content.vue') }
     ]
   }
 ]
